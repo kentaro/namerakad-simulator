@@ -1,8 +1,18 @@
-var power   = 100; // ノードが耐えられる最大負荷
-var length  = 16;  // 縦横のマス目の数
-var size    = 30;  // ノードの縦横の長さ
-var warning = 8;   // 警告ライン
-var limit   = 10;  // ノードを死亡したことにするしきい値
+var length  = 16;
+var size    = 30;
+var power   = 100;
+
+var limit, warning, timeToBoot, reqCount;
+var initVars = function () {
+    limit      = parseInt(document.getElementById("threshold").value);
+    warning    = limit * 0.8;
+    timeToBoot = parseInt(document.getElementById("time-to-boot").value);
+    reqCount   = parseInt(document.getElementById("req-count").value);
+};
+initVars.call();
+setInterval(initVars, 1000);
+
+var score = document.getElementById('score');
 
 class Node {
     constructor(x, y) {
@@ -15,9 +25,7 @@ class Node {
 
     update() {
         if (Math.floor(Math.random() > 0.8)) {
-            this.load += Math.random() * (5 - 1) * 1;
-        } else {
-            this.load -= Math.random() * (2 - 1) * 1;
+            this.load += (reqCount/(length*length)) + Math.random() * (6 - 1) * 1;
         }
 
         if (this.load > limit) {
@@ -41,14 +49,27 @@ class Node {
     recover(m, i, j) {
         var left = m[i][j - 1];
         if (left && left.dead) {
-            var n = new Node(left.x, left.y);
-            m[i][j - 1] = n;
+            setTimeout(function() {
+                var n = new Node(left.x, left.y);
+                m[i][j - 1] = n;
+            }, timeToBoot);
         }
 
         var right = m[i][j + 1];
         if (right && right.dead) {
-            var n = new Node(right.x, right.y);
-            m[i][j + 1] = n;
+            setTimeout(function() {
+                var n = new Node(right.x, right.y);
+                m[i][j + 1] = n;
+            }, timeToBoot);
+        }
+    }
+
+    score() {
+        if (this.dead) {
+            return 0;
+        }
+        else {
+            return power - this.load;
         }
     }
 }
@@ -85,6 +106,19 @@ class Nodes {
             }
         }
     }
+
+    updateScore() {
+        var sum = 0;
+
+        for (var i in this.matrix) {
+            for (var j in this.matrix[i]) {
+                var n = this.matrix[i][j];
+                sum += n.score();
+            }
+        }
+
+        return sum;
+    }
 }
 
 var nodes = new Nodes(length);
@@ -119,6 +153,8 @@ var s = function(p) {
                 p.pop();
             }
         }
+
+        score.innerHTML = nodes.updateScore();
     };
 };
 

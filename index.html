@@ -6,7 +6,6 @@
     <title>なめらかなシステム</title>
     <script src="p5.min.js"></script>
     <script src="Chart.min.js"></script>
-    <script src="simulator.js"></script>
   </head>
   <body>
     <ul>
@@ -14,5 +13,15 @@
       <li>赤: 負荷がヤバいノード</li>
       <li>黒: 死んだノード</li>
     </ul>
+
+    <p>
+      ノードを死亡したことにするしきい値(0-100): <input id="threshold" type="text" value="10">
+      起動に要する時間(ミリ秒): <input id="time-to-boot" type="text" value="3000">
+      リクエスト数: <input id="req-count" type="text" value="1000">
+    </p>
+    <p id="score">
+      0
+    </p>
+    <script src="simulator.js"></script>
   </body>
 </html>

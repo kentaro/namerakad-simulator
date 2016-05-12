@@ -1,7 +1,8 @@
+var power   = 100; // ノードが耐えられる最大負荷
 var length  = 16;  // 縦横のマス目の数
 var size    = 30;  // ノードの縦横の長さ
-var warning = 80;  // 警告ライン
-var limit   = 100; // ノード死亡
+var warning = 8;   // 警告ライン
+var limit   = 10;  // ノードを死亡したことにするしきい値
 
 class Node {
     constructor(x, y) {
@@ -13,10 +14,10 @@ class Node {
     }
 
     update() {
-        if (Math.floor(Math.random() > 0.66)) {
+        if (Math.floor(Math.random() > 0.8)) {
             this.load += Math.random() * (5 - 1) * 1;
         } else {
-            this.load -= Math.random();
+            this.load -= Math.random() * (2 - 1) * 1;
         }
 
         if (this.load > limit) {
@@ -106,7 +107,6 @@ var s = function(p) {
         for (var i in nodes.matrix) {
             for (var j in nodes.matrix[i]) {
                 var n = nodes.matrix[i][j];
-
                 if (n.dead) {
                     continue;
                 }

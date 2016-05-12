@@ -13,7 +13,11 @@ class Node {
     }
 
     update() {
-        this.load += Math.random(50);
+        if (Math.floor(Math.random() > 0.66)) {
+            this.load += Math.random() * (5 - 1) * 1;
+        } else {
+            this.load -= Math.random();
+        }
 
         if (this.load > limit) {
             this.die();

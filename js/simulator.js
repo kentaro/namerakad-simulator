@@ -121,7 +121,6 @@ class Nodes {
     }
 }
 
-var canvas;
 var nodes = new Nodes(length);
 var s = function(p) {
     p.setup = function() {
@@ -132,8 +131,7 @@ var s = function(p) {
             nodes.add(n);
         }
 
-        canvas = p.createCanvas(500, 500);
-        canvas.parent('canvas-container');
+        p.createCanvas(500, 500);
     };
 
     p.draw = function() {

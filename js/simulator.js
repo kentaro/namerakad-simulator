@@ -12,90 +12,35 @@ var initVars = function () {
 initVars.call();
 setInterval(initVars, 1000);
 
+var canvas = document.getElementById('canvas');
 var score = document.getElementById('score');
 
-class Node {
-    constructor(x, y, size) {
-        this.x     = x;
-        this.y     = y;
-        this.size  = size;
-
-        this.color = 'white'; // ノードの負荷状況を示す色
-        this.load  = 0;       // 負荷
-        this.dead  = false;   // 死亡
-    }
-
-    draw() {
-        push();
-        fill(this.color);
-        rect(this.x, this.y, this.size, this.size);
-        pop();
-    }
-
-    update() {
-        if (Math.floor(Math.random() > 0.999)) {
-            this.load += (reqCount/(length*length)) + Math.random() * (6 - 1) * 1;
-        }
-
-        if (this.load > limit) {
-            this.die();
-        }
-        else if (this.load >= warning) {
-            this.markWarning();
-        }
-    }
-
-    markWarning() {
-        this.color = 'red';
-    }
-
-    die() {
-        this.color = 'black';
-        this.dead  = true;
-    }
-
-    // 左右を見て死んでたら新しいノードを作っておきかえる
-    recover(m, i, j) {
-        var left = m[i][j - 1];
-        if (left && left.dead) {
-            // ノードが起動するには時間がかかる
-            setTimeout(function() {
-                var n = new Node(left.x, left.y, left.size);
-                m[i][j - 1] = n;
-            }, timeToBoot);
-        }
-
-        var right = m[i][j + 1];
-        if (right && right.dead) {
-            // ノードが起動するには時間がかかる
-            setTimeout(function() {
-                var n = new Node(right.x, right.y, right.size);
-                m[i][j + 1] = n;
-            }, timeToBoot);
-        }
-    }
-
-    score() {
-        if (this.dead) {
-            return 0;
-        }
-        else {
-            return power - this.load;
-        }
-    }
-}
-
-class Nodes {
-    constructor(length) {
+class Namerakad {
+    constructor(length, size) {
         this.length = length;
+        this.size   = size;
         this.matrix = [];
+        this.timer;
 
-        for (var i = 0; i < length * length; i++) {
-            var x = (size * i + 10) - (size * length * Math.floor(i/length));
-            var y = (Math.floor(i/length) * size) + 10;
-            var n = new Node(x, y, size);
+        // length * length個のノードを正方形にしきつめる
+        for (var i = 0; i < this.length * this.length; i++) {
+            var x = (this.size * i) - (this.size * this.length * Math.floor(i/this.length));
+            var y = Math.floor(i/this.length) * this.size;
+            var n = new Node(x, y, this.size);
             this.add(n);
+            n.start();
         }
+    }
+
+    start() {
+        this.timer = setInterval(() => {
+            this.recover();
+        }, 1000);
+    }
+
+    stop() {
+        clearInterval(this.timer);
+        this.timer = undefined;
     }
 
     add(node) {
@@ -109,20 +54,6 @@ class Nodes {
             if (this.matrix[i].length < this.length) {
                 this.matrix[i].push(node);
                 return;
-            }
-        }
-    }
-
-    update() {
-        for (var i in this.matrix) {
-            for (var j in this.matrix[i]) {
-                var n = this.matrix[i][j];
-
-                if (n.dead) {
-                    continue;
-                }
-
-                n.update();
             }
         }
     }
@@ -149,21 +80,118 @@ class Nodes {
                 }
 
                 n.recover(this.matrix, i, j);
+            }
+        }
+    }
+
+    draw() {
+        for (var i in this.matrix) {
+            for (var j in this.matrix[i]) {
+                var n = this.matrix[i][j];
                 n.draw();
             }
         }
     }
 }
 
-var nodes = new Nodes(length);
+class Node {
+    constructor(x, y, size) {
+        this.x     = x;
+        this.y     = y;
+        this.size  = size;
 
-function setup() {
-    createCanvas(500, 500);
-};
+        this.color = '#92b0f7'; // ノードの負荷状況を示す色
+        this.load  = 0;         // 負荷
+        this.dead  = false;     // 死亡
 
-function draw() {
-    background(0);
-    nodes.update();
-    nodes.recover();
-    score.innerHTML = nodes.updateScore();
-};
+        this.dom                       = document.createElement('div');
+        this.dom.style.backgroundColor = this.color;
+        this.dom.style.position        = 'absolute';
+        this.dom.style.width           = this.size + 'px';
+        this.dom.style.height          = this.size + 'px';
+        this.dom.style.left            = this.x + 'px';
+        this.dom.style.top             = this.y + 'px';
+        this.dom.style.borderRadius    = this.size + 'px';
+        canvas.appendChild(this.dom);
+
+        this.timer;
+    }
+
+    start() {
+        this.draw();
+        this.timer = setInterval(() => {
+            this.update();
+        }, 1000);
+    }
+
+    stop() {
+        clearInterval(this.timer);
+        this.timer = undefined;
+    }
+
+    draw() {
+        this.dom.style.backgroundColor = this.color;
+    }
+
+    update() {
+        if (Math.floor(Math.random() > 0.9)) {
+            this.load += (reqCount/(length*length)) + Math.random() * (6 - 1) * 1;
+        }
+
+        if (this.load > limit) {
+            this.die();
+        }
+        else if (this.load >= warning) {
+            this.markWarning();
+        }
+    }
+
+    markWarning() {
+        this.color = '#f7f292';
+        this.draw();
+    }
+
+    die() {
+        this.color = '#ffffff';
+        this.dead  = true;
+        clearInterval(this.timer);
+        this.draw();
+    }
+
+    // 左右を見て死んでたら新しいノードを作っておきかえる
+    recover(m, i, j) {
+        var left = m[i][j - 1];
+        if (left && left.dead) {
+            // ノードが起動するには時間がかかる
+            setTimeout(() => {
+                m[i][j - 1] = undefined;
+                var n = new Node(left.x, left.y, left.size);
+                m[i][j - 1] = n;
+                n.start();
+            }, timeToBoot);
+        }
+
+        var right = m[i][j + 1];
+        if (right && right.dead) {
+            // ノードが起動するには時間がかかる
+            setTimeout(() => {
+                m[i][j + 1] = undefined;
+                var n = new Node(right.x, right.y, right.size);
+                m[i][j + 1] = n;
+                n.start();
+            }, timeToBoot);
+        }
+    }
+
+    score() {
+        if (this.dead) {
+            return 0;
+        }
+        else {
+            return power - this.load;
+        }
+    }
+}
+
+var namerakad = new Namerakad(length, size);
+    namerakad.start();

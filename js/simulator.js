@@ -98,11 +98,9 @@ class Namerakad {
         for (var i in this.matrix) {
             for (var j in this.matrix[i]) {
                 var n = this.matrix[i][j];
-                if (n.dead) {
-                    continue;
+                if (n && !n.dead) {
+                    n.recover(this.matrix, i, j);
                 }
-
-                n.recover(this.matrix, i, j);
             }
         }
     }
@@ -178,8 +176,9 @@ class Node {
 
     die() {
         this.dead  = true;
+        this.color = '#f13238';
+        this.draw();
         this.stop();
-        canvas.removeChild(this.dom);
     }
 
     // 左右を見て死んでたら新しいノードを作っておきかえる
@@ -188,6 +187,7 @@ class Node {
         if (left && left.dead) {
             // ノードが起動するには時間がかかる
             setTimeout(() => {
+                canvas.removeChild(m[i][j - 1].dom);
                 m[i][j - 1] = undefined;
                 var n = new Node(left.x, left.y, left.size);
                 m[i][j - 1] = n;
@@ -199,6 +199,7 @@ class Node {
         if (right && right.dead) {
             // ノードが起動するには時間がかかる
             setTimeout(() => {
+                canvas.removeChild(m[i][j + 1].dom);
                 m[i][j + 1] = undefined;
                 var n = new Node(right.x, right.y, right.size);
                 m[i][j + 1] = n;

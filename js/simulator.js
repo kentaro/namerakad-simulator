@@ -1,9 +1,9 @@
-var length  = 16;
+var length  = 12;
 var size    = 30;
 var power   = 100;
 
 var limit, warning, timeToBoot, reqCount;
-var initVars = function () {
+var initVars = () => {
     limit      = parseInt(document.getElementById("threshold").value);
     warning    = limit * 0.8;
     timeToBoot = parseInt(document.getElementById("time-to-boot").value);
@@ -32,15 +32,33 @@ class Namerakad {
         }
     }
 
+    allNodes() {
+        var nodes = [];
+        this.matrix.forEach((row) => {
+            row.forEach((e) => {
+                nodes.push(e);
+            });
+        });
+
+        return nodes;
+    }
+
     start() {
-        this.timer = setInterval(() => {
-            this.recover();
-        }, 1000);
+        if (!this.timer) {
+            this.timer = setInterval(() => {
+                this.recover();
+                this.updateScore();
+            }, 1000);
+        }
+
+        this.allNodes().forEach((n) => n.start());
     }
 
     stop() {
         clearInterval(this.timer);
         this.timer = undefined;
+
+        this.allNodes().forEach((n) => n.stop());
     }
 
     add(node) {
@@ -59,16 +77,21 @@ class Namerakad {
     }
 
     updateScore() {
-        var sum = 0;
+        var sum   = 0;
+        var count = 0;
 
         for (var i in this.matrix) {
             for (var j in this.matrix[i]) {
                 var n = this.matrix[i][j];
                 sum += n.score();
+
+                if (!n.dead) {
+                    count++;
+                }
             }
         }
 
-        return sum;
+        score.innerHTML = 'ノード数: ' + count + ', スコア総計: ' + sum;
     }
 
     recover() {
@@ -118,10 +141,12 @@ class Node {
     }
 
     start() {
+        if (!this.timer) {
+            this.timer = setInterval(() => {
+                this.update();
+            }, 1000);
+        }
         this.draw();
-        this.timer = setInterval(() => {
-            this.update();
-        }, 1000);
     }
 
     stop() {
@@ -152,10 +177,9 @@ class Node {
     }
 
     die() {
-        this.color = '#ffffff';
         this.dead  = true;
-        clearInterval(this.timer);
-        this.draw();
+        this.stop();
+        canvas.removeChild(this.dom);
     }
 
     // 左右を見て死んでたら新しいノードを作っておきかえる

@@ -15,16 +15,25 @@ setInterval(initVars, 1000);
 var score = document.getElementById('score');
 
 class Node {
-    constructor(x, y) {
+    constructor(x, y, size) {
         this.x     = x;
         this.y     = y;
+        this.size  = size;
+
         this.color = 'white'; // ノードの負荷状況を示す色
         this.load  = 0;       // 負荷
         this.dead  = false;   // 死亡
     }
 
+    draw() {
+        push();
+        fill(this.color);
+        rect(this.x, this.y, this.size, this.size);
+        pop();
+    }
+
     update() {
-        if (Math.floor(Math.random() > 0.8)) {
+        if (Math.floor(Math.random() > 0.999)) {
             this.load += (reqCount/(length*length)) + Math.random() * (6 - 1) * 1;
         }
 
@@ -49,16 +58,18 @@ class Node {
     recover(m, i, j) {
         var left = m[i][j - 1];
         if (left && left.dead) {
+            // ノードが起動するには時間がかかる
             setTimeout(function() {
-                var n = new Node(left.x, left.y);
+                var n = new Node(left.x, left.y, left.size);
                 m[i][j - 1] = n;
             }, timeToBoot);
         }
 
         var right = m[i][j + 1];
         if (right && right.dead) {
+            // ノードが起動するには時間がかかる
             setTimeout(function() {
-                var n = new Node(right.x, right.y);
+                var n = new Node(right.x, right.y, right.size);
                 m[i][j + 1] = n;
             }, timeToBoot);
         }
@@ -78,14 +89,23 @@ class Nodes {
     constructor(length) {
         this.length = length;
         this.matrix = [];
+
+        for (var i = 0; i < length * length; i++) {
+            var x = (size * i + 10) - (size * length * Math.floor(i/length));
+            var y = (Math.floor(i/length) * size) + 10;
+            var n = new Node(x, y, size);
+            this.add(n);
+        }
     }
 
     add(node) {
         for (var i = 0; i < this.length; i++) {
+            // 行に配列がまだない場合は配列を作って追加
             if (!this.matrix[i]) {
                 this.matrix[i] = [node];
                 return;
             }
+            // 行がサイズ以内の配列なら後ろに追加
             if (this.matrix[i].length < this.length) {
                 this.matrix[i].push(node);
                 return;
@@ -119,43 +139,31 @@ class Nodes {
 
         return sum;
     }
-}
 
-var nodes = new Nodes(length);
-var s = function(p) {
-    p.setup = function() {
-        for (var i = 0; i < length * length; i++) {
-            var x = (size * i + 10) - (size * length * Math.floor(i/length));
-            var y = (Math.floor(i/length) * size) + 10;
-            var n = new Node(x, y);
-            nodes.add(n);
-        }
-
-        p.createCanvas(500, 500);
-    };
-
-    p.draw = function() {
-        p.background(0);
-        nodes.update();
-
-        for (var i in nodes.matrix) {
-            for (var j in nodes.matrix[i]) {
-                var n = nodes.matrix[i][j];
+    recover() {
+        for (var i in this.matrix) {
+            for (var j in this.matrix[i]) {
+                var n = this.matrix[i][j];
                 if (n.dead) {
                     continue;
                 }
 
-                n.recover(nodes.matrix, i, j);
-
-                p.push();
-                p.fill(n.color);
-                p.rect(n.x, n.y, size, size);
-                p.pop();
+                n.recover(this.matrix, i, j);
+                n.draw();
             }
         }
+    }
+}
 
-        score.innerHTML = nodes.updateScore();
-    };
+var nodes = new Nodes(length);
+
+function setup() {
+    createCanvas(500, 500);
 };
 
-var myp5 = new p5(s);
+function draw() {
+    background(0);
+    nodes.update();
+    nodes.recover();
+    score.innerHTML = nodes.updateScore();
+};

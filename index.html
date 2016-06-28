@@ -7,15 +7,15 @@
   </head>
   <body>
     <h1>なめらかなシステム</h1>
-    <ul>
-      <li>ノードを死亡したことにするしきい値(0-100): <input id="threshold" type="text" value="80"></li>
-      <li>起動に要する時間(ミリ秒): <input id="time-to-boot" type="text" value="1000"></li>
-      <li>リクエスト数: <input id="req-count" type="text" value="1000"></li>
+    <ul style="float:left; width:25em; margin-right:20px;">
+      <li>ノードを死亡したことにするしきい値(0-100):<br><input id="threshold" type="text" value="80"></li>
+      <li>起動に要する時間(ミリ秒):<br><input id="time-to-boot" type="text" value="1000"></li>
+      <li>リクエスト数:<br><input id="req-count" type="text" value="1000"></li>
+      <li id="score">0</li>
     </ul>
-    <p id="score">
-      0
-    </p>
-    <div id="canvas" style="position:absolute"></div>
+    <div style="float:left">
+      <div id="canvas" style="position:absolute"></div>
+    </div>
     <script src="js/simulator.js"></script>
   </body>
 </html>
